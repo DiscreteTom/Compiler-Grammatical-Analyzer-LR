@@ -11,6 +11,7 @@ int main(/*int argc, char *argv[]*/)
 	GrammaTable gt;
 	QString t;
 
+	gt.insert("E' -> E");
 	gt.insert("E -> E+T | E-T | T");
 	gt.insert("T -> T*F | T/F | F");
 	gt.insert("F -> (E) | $num$");
