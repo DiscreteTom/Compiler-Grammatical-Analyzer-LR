@@ -1,6 +1,6 @@
 #include "gramma.h"
 #include <QStack>
-
+#include "myutility.h"
 #include <iostream>
 
 using namespace std;
@@ -426,16 +426,16 @@ bool GrammaTable::generate()
 
 void GrammaTable::outputSingleCandidate(int ntIndex, int candidateIndex) const
 {
-	cout << ntTable.getStr(ntIndex).toStdString() << " -> ";
+	cout << ntTable.getStr(ntIndex) << " -> ";
 	for (auto symbol : grammas[ntIndex][candidateIndex])
 	{
 		if (symbol.type == Symbol::SymbolType::NT)
 		{
-			cout << ntTable.getStr(symbol.index).toStdString();
+			cout << ntTable.getStr(symbol.index);
 		}
 		else
 		{
-			cout << tTable.getStr(symbol.index).toStdString();
+			cout << tTable.getStr(symbol.index);
 		}
 	}
 }
@@ -452,7 +452,7 @@ void GrammaTable::output() const
 	for (int i = 0; i < grammas.size(); ++i)
 	{
 		if (grammas[i].size())
-			cout << ntTable.getStr(i).toStdString() << " -> ";
+			cout << ntTable.getStr(i) << " -> ";
 		for (int j = 0; j < grammas[i].size(); ++j)
 		{
 			// each candidate
@@ -461,11 +461,11 @@ void GrammaTable::output() const
 				// each symbol
 				if (grammas[i][j][k].type == Symbol::SymbolType::NT)
 				{
-					cout << ntTable.getStr(grammas[i][j][k].index).toStdString();
+					cout << ntTable.getStr(grammas[i][j][k].index);
 				}
 				else // type == T
 				{
-					cout << tTable.getStr(grammas[i][j][k].index).toStdString();
+					cout << tTable.getStr(grammas[i][j][k].index);
 				}
 			}
 			if (j != grammas[i].size() - 1)
@@ -479,10 +479,10 @@ void GrammaTable::output() const
 	cout << "First sets:\n";
 	for (int i = 0; i < firsts.size(); ++i)
 	{
-		cout << "First(" << ntTable.getStr(i).toStdString() << "): ";
+		cout << "First(" << ntTable.getStr(i) << "): ";
 		for (auto first : firsts[i])
 		{
-			cout << tTable.getStr(first.index).toStdString() << " ";
+			cout << tTable.getStr(first.index) << " ";
 		}
 		cout << "\n";
 	}
@@ -491,10 +491,10 @@ void GrammaTable::output() const
 	cout << "Follow sets:\n";
 	for (int i = 0; i < firsts.size(); ++i)
 	{
-		cout << "Follow(" << ntTable.getStr(i).toStdString() << "): ";
+		cout << "Follow(" << ntTable.getStr(i) << "): ";
 		for (auto follow : follows[i])
 		{
-			cout << tTable.getStr(follow.index).toStdString() << " ";
+			cout << tTable.getStr(follow.index) << " ";
 		}
 		cout << "\n";
 	}

@@ -1,11 +1,12 @@
 #include <iostream>
 #include "gramma.h"
+#include "myutility.h"
 #include <QString>
 #include <string>
 
 using namespace std;
 
-int main(int argc, char *argv[])
+int main(/*int argc, char *argv[]*/)
 {
 	GrammaTable gt;
 	QString t;
@@ -22,11 +23,10 @@ int main(int argc, char *argv[])
 	while (flag)
 	{
 		cout << "\nInput a line to parse, input blank line to stop.\n";
-		string t;
 		getline(cin, t);
 		if (t.length())
 		{
-			gt.parse(QString::fromStdString(t));
+			gt.parse(t);
 		}
 		else
 		{

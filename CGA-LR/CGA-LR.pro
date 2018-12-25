@@ -25,4 +25,5 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 HEADERS += \
     gramma.h \
-    symbol.h
+    symbol.h \
+    myutility.h
