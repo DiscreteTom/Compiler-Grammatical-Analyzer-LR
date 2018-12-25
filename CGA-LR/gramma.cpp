@@ -209,6 +209,24 @@ void GrammaTable::getFollows()
 	}
 }
 
+int GrammaTable::getIndex(int ntIndex, int candidateIndex) const
+{
+	int result = 0;
+	for (int i = 0; i < ntIndex; ++i){
+		result += grammas[i].size();
+	}
+	return result + candidateIndex;
+}
+
+int GrammaTable::candidateCount() const
+{
+	int result = 0;
+	for (const auto &gramma : grammas){
+		result += gramma.size();
+	}
+	return result;
+}
+
 First GrammaTable::getFirst(const Candidate &candidate) const
 {
 	First result;
@@ -421,12 +439,6 @@ bool GrammaTable::generate()
 		return false;
 	getFirsts();
 	getFollows();
-	// generate index of candidates
-	for (auto gramma : grammas){
-		for (auto candidate: gramma){
-			candidates.push_back(candidate);
-		}
-	}
 	return true;
 }
 
@@ -479,6 +491,18 @@ void GrammaTable::output() const
 		}
 		if (grammas[i].size())
 			cout << endl;
+	}
+	cout << endl;
+
+	cout << "Candidates with index:\n";
+	int index = 0;
+	for (int i = 0; i < grammas.size(); ++i){
+		for (int j = 0; j < grammas[i].size(); ++j){
+			cout << index << "\t";
+			outputSingleCandidate(i, j);
+			++index;
+			cout << endl;
+		}
 	}
 	cout << endl;
 

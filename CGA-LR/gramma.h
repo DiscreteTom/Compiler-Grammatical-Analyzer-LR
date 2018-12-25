@@ -39,7 +39,6 @@ private:
 	// process
 	QVector<First> firsts;
 	QVector<Follow> follows;
-	QVector<Candidate> candidates; // to give every candidate an index
 
 	void killBlank(QString &str) const; // discard blank chars
 	bool format(QString &str) const;		// return false if format is wrong
@@ -53,6 +52,8 @@ private:
 	void getFirsts();
 	First getFirst(const Candidate &candidate) const;
 	void getFollows();
+	int getIndex(int ntIndex, int candidateIndex) const;
+	int candidateCount() const;
 	Candidate parseInputToCandidate(const QString &str) const; // return empty candidate if error
 	void outputSingleCandidate(int ntIndex, int candidateIndex) const;
 
