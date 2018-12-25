@@ -1,25 +1,13 @@
 #include "gramma.h"
-#include <stack>
+#include <QStack>
 
 #include <iostream>
 
 using namespace std;
 
-bool operator==(const Candidate &c1, const Candidate &c2)
+void GrammaTable::killBlank(QString &str) const
 {
-	if (c1.size() != c2.size())
-		return false;
-	for (int i = 0; i < c1.size(); ++i)
-	{
-		if (c1[i] != c2[i])
-			return false;
-	}
-	return true;
-}
-
-void GrammaTable::killBlank(string &str) const
-{
-	string result;
+	QString result;
 	for (auto c : str)
 	{
 		if (c != ' ' && c != '\t' && c != '\n')
@@ -28,11 +16,11 @@ void GrammaTable::killBlank(string &str) const
 	str = result;
 }
 
-bool GrammaTable::format(string &str) const
+bool GrammaTable::format(QString &str) const
 {
 	killBlank(str);
 	//check format
-	int i = str.find('-');
+	int i = str.indexOf('-');
 	if (str[i + 1] != '>')
 		return false;
 	return true;
@@ -62,88 +50,6 @@ void GrammaTable::killDuplicated(int index)
 					--j;
 				}
 			}
-		}
-	}
-}
-
-void GrammaTable::killLeftRecursion()
-{
-	for (int i = 0; i < grammas.size(); ++i)
-	{
-		//eliminate explicit left recursion
-		killExplicitLeftRecursion(i);
-		for (int j = 0; j < i; ++j)
-		{
-			// find Ai -> Ajxxx
-			for (int k = 0; k < grammas[i].size(); ++k)
-			{
-				//for each candidate
-				if (grammas[i][k][0].type == Symbol::SymbolType::NT && grammas[i][k][0].index == j)
-				{
-					// grammas[i][k]: Ai -> Ajxxx
-					auto AjCandidates = grammas[j];
-					for (auto candidate : AjCandidates)
-					{
-						candidate.insert(candidate.end(), grammas[i][k].begin() + 1, grammas[i][k].end());
-						grammas[i].push_back(candidate);
-					}
-					grammas[i].erase(grammas[i].begin() + k);
-					killExplicitLeftRecursion(i);
-				}
-			}
-		}
-		// killUseless();
-	}
-	killEpsilon();
-}
-
-void GrammaTable::killExplicitLeftRecursion(int index)
-{
-	vector<vector<Symbol>> newCandidates;
-	for (int i = 0; i < grammas[index].size(); ++i) // for each candidate
-	{
-		if (grammas[index][i][0].type == Symbol::SymbolType::NT && grammas[index][i][0].index == index)
-		{
-			//explicit left recursion exist
-			//get left recursion candidate and delete the origin one
-			vector<Symbol> candidate = grammas[index][i];
-			grammas[index].erase(grammas[index].begin() + i);
-			--i;
-			newCandidates.push_back(candidate);
-		}
-	}
-
-	if (newCandidates.size()) // explicit left recursion exist
-	{
-		//add a new NT
-		int newIndex = ntTable.getIndex(ntTable.getStr(index) + '\'');
-		//construct this new NT
-		for (int i = 0; i < newCandidates.size(); ++i)
-		{
-			//erase first element, kill left recursion
-			newCandidates[i].erase(newCandidates[i].begin());
-			//add new symbol to the end
-			newCandidates[i].push_back({Symbol::SymbolType::NT, newIndex});
-		}
-		//add epsilon
-		if (grammas[index].size())
-		{
-			vector<Symbol> epsilon;
-			epsilon.push_back(EPSILON);
-			newCandidates.push_back(epsilon);
-		}
-		grammas.push_back(newCandidates);
-
-		// renew old candidate
-		for (int i = 0; i < grammas[index].size(); ++i)
-		{
-			grammas[index][i].push_back({Symbol::SymbolType::NT, newIndex});
-		}
-		if (!grammas[index].size())
-		{
-			vector<Symbol> t;
-			t.push_back({Symbol::SymbolType::NT, newIndex});
-			grammas[index].push_back(t);
 		}
 	}
 }
@@ -335,76 +241,13 @@ First GrammaTable::getFirst(const Candidate &candidate) const
 	return result;
 }
 
-bool GrammaTable::getM()
-{
-	if (error)
-		return false;
-
-	M.clear();
-
-	// init M
-	for (int i = 0; i < ntTable.size(); ++i)
-	{
-		for (int j = 1; j < tTable.size(); ++j)
-		{
-			M.insert(make_pair(MapKey({i, j}), TableItem()));
-		}
-	}
-
-	for (int i = 0; i < grammas.size(); ++i)
-	{
-		for (int j = 0; j < grammas[i].size(); ++j) // for each candidate
-		{
-			bool containEPSILON = false;
-			for (auto first : getFirst(grammas[i][j]))
-			{
-				if (first == EPSILON)
-					containEPSILON = true;
-				if (M[{i, first.index}] == TableItem({i, j}))
-					;
-				else if (M[{i, first.index}].ntIndex == -1)
-				{
-					// ok to set value
-					M[{i, first.index}] = {i, j};
-				}
-				else
-				{
-					// this item already has value, error
-					error = true;
-					return false;
-				}
-				if (containEPSILON) // FIRST contains EPSILON
-				{
-					for (auto follow : follows[i])
-					{
-						if (M[{i, follow.index}] == TableItem({i, j}))
-							;
-						else if (M[{i, follow.index}].ntIndex == -1)
-						{
-							// ok to set value
-							M[{i, follow.index}] = {i, j};
-						}
-						else
-						{
-							// this item already has value, error
-							error = true;
-							return false;
-						}
-					}
-				}
-			}
-		}
-	}
-	return true;
-}
-
-Candidate GrammaTable::parseInputToCandidate(const string &str) const
+Candidate GrammaTable::parseInputToCandidate(const QString &str) const
 {
 	int i = 0;
 	Candidate result;
 	while (i < str.length())
 	{
-		string sym;
+		QString sym;
 		if (str[i] == '$')
 		{
 			while (i + 1 < str.length() && str[i + 1] != '$')
@@ -453,12 +296,12 @@ Candidate GrammaTable::parseInputToCandidate(const string &str) const
 	return result;
 }
 
-int GrammaTable::insert(const string &grammaLine)
+int GrammaTable::insert(const QString &grammaLine)
 {
 	if (error)
 		return lineCount;
 	++lineCount;
-	string str = grammaLine;
+	QString str = grammaLine;
 	if (!format(str))
 	{
 		error = true;
@@ -470,8 +313,8 @@ int GrammaTable::insert(const string &grammaLine)
 		return lineCount; // ERROR
 	}
 
-	// get left Symbol string
-	string left;
+	// get left Symbol QString
+	QString left;
 	left += str[0];
 	int i = 1; // index of str
 	while (i < str.length() && str[i] == '\'')
@@ -490,7 +333,7 @@ int GrammaTable::insert(const string &grammaLine)
 	// get right
 	i += 2; // read "->"
 	Candidate candidate;
-	string sym; // current symbol string
+	QString sym; // current symbol QString
 	while (i < str.length())
 	{
 		if (str[i] >= 'A' && str[i] <= 'Z')
@@ -576,24 +419,23 @@ bool GrammaTable::generate()
 {
 	if (error)
 		return false;
-	killLeftRecursion();
 	getFirsts();
 	getFollows();
-	return getM();
+	return true;
 }
 
 void GrammaTable::outputSingleCandidate(int ntIndex, int candidateIndex) const
 {
-	cout << ntTable.getStr(ntIndex) << " -> ";
+	cout << ntTable.getStr(ntIndex).toStdString() << " -> ";
 	for (auto symbol : grammas[ntIndex][candidateIndex])
 	{
 		if (symbol.type == Symbol::SymbolType::NT)
 		{
-			cout << ntTable.getStr(symbol.index);
+			cout << ntTable.getStr(symbol.index).toStdString();
 		}
 		else
 		{
-			cout << tTable.getStr(symbol.index);
+			cout << tTable.getStr(symbol.index).toStdString();
 		}
 	}
 }
@@ -602,7 +444,7 @@ void GrammaTable::output() const
 {
 	if (error)
 	{
-		cout << "Can NOT parse gramma to LL(1)\n";
+		cout << "Can NOT parse gramma to LR gramma\n";
 		return;
 	}
 
@@ -610,7 +452,7 @@ void GrammaTable::output() const
 	for (int i = 0; i < grammas.size(); ++i)
 	{
 		if (grammas[i].size())
-			cout << ntTable.getStr(i) << " -> ";
+			cout << ntTable.getStr(i).toStdString() << " -> ";
 		for (int j = 0; j < grammas[i].size(); ++j)
 		{
 			// each candidate
@@ -619,11 +461,11 @@ void GrammaTable::output() const
 				// each symbol
 				if (grammas[i][j][k].type == Symbol::SymbolType::NT)
 				{
-					cout << ntTable.getStr(grammas[i][j][k].index);
+					cout << ntTable.getStr(grammas[i][j][k].index).toStdString();
 				}
 				else // type == T
 				{
-					cout << tTable.getStr(grammas[i][j][k].index);
+					cout << tTable.getStr(grammas[i][j][k].index).toStdString();
 				}
 			}
 			if (j != grammas[i].size() - 1)
@@ -634,123 +476,32 @@ void GrammaTable::output() const
 	}
 	cout << endl;
 
-	cout << "First:\n";
+	cout << "First sets:\n";
 	for (int i = 0; i < firsts.size(); ++i)
 	{
-		cout << "First(" << ntTable.getStr(i) << "): ";
+		cout << "First(" << ntTable.getStr(i).toStdString() << "): ";
 		for (auto first : firsts[i])
 		{
-			cout << tTable.getStr(first.index) << " ";
+			cout << tTable.getStr(first.index).toStdString() << " ";
 		}
 		cout << "\n";
 	}
 	cout << endl;
 
-	cout << "Follows:\n";
+	cout << "Follow sets:\n";
 	for (int i = 0; i < firsts.size(); ++i)
 	{
-		cout << "Follow(" << ntTable.getStr(i) << "): ";
+		cout << "Follow(" << ntTable.getStr(i).toStdString() << "): ";
 		for (auto follow : follows[i])
 		{
-			cout << tTable.getStr(follow.index) << " ";
+			cout << tTable.getStr(follow.index).toStdString() << " ";
 		}
 		cout << "\n";
-	}
-	cout << endl;
-
-	cout << "Predict Analyze Table:\n";
-	for (auto item : M)
-	{
-		if (item.second.ntIndex != -1)
-		{
-			cout << "[" << ntTable.getStr(item.first.ntIndex) << ", " << tTable.getStr(item.first.tIndex) << "]: ";
-			outputSingleCandidate(item.second.ntIndex, item.second.candidateIndex);
-			cout << endl;
-		}
 	}
 	cout << endl;
 }
 
-bool GrammaTable::parse(const string &str) const
+bool GrammaTable::parse(const QString &str) const
 {
-	if (error)
-	{
-		return false;
-	}
-	if (!M.size())
-	{
-		cout << "Predict Analyze Table is empty yet.\n";
-		return false;
-	}
-
-	// get input symbols
-	string t = str;
-	killBlank(t);
-	auto input = parseInputToCandidate(t);
-	if (!input.size())
-	{
-		cout << "Invalid input.\n";
-		return false;
-	}
-	input.push_back(END);
-
-	// init stack
-	stack<Symbol> s; // analyze stack
-	s.push(END);
-	s.push(Symbol({Symbol::SymbolType::NT, 0})); // push the first NT
-
-	int i = 0; // index of str
-
-	cout << endl;
-	do
-	{
-		if (s.top() == END)
-		{
-			if (input[i] != END)
-			{
-				cout << "Input not belongs to this gramma.\n";
-				return false;
-			}
-			else
-			{
-				cout << "Accept.\n\n";
-				return true;
-			}
-		}
-		else if (s.top().type == Symbol::SymbolType::T)
-		{
-			if (s.top() == input[i])
-			{
-				s.pop();
-				++i;
-			}
-			else
-			{
-				cout << "Input not belongs to this gramma.\n";
-				return false;
-			}
-		}
-		else // s.top() is a non-terminator
-		{
-			auto aim = M.at({s.top().index, input[i].index});
-			if (aim.ntIndex != -1) // table item exist
-			{
-				s.pop();
-				Candidate c = grammas[aim.ntIndex][aim.candidateIndex];
-				for (int i = c.size() - 1; i >= 0; --i)
-				{
-					if (c[i] != EPSILON)
-						s.push(c[i]);
-				}
-				cout << "Use: ";
-				outputSingleCandidate(aim.ntIndex, aim.candidateIndex);
-				cout << "\n";
-			}
-			else
-			{
-				cout << "Input not belongs to this gramma.\n";
-				return false;
-			}
-		}
-	} while (1);
+	return false;
 }

@@ -1,9 +1,8 @@
 #pragma once
 
-#include <vector>
-#include <string>
-
-using namespace std;
+#include <QVector>
+#include <QString>
+#include <QHash>
 
 struct Symbol
 {
@@ -17,21 +16,24 @@ struct Symbol
 
 	bool operator==(const Symbol &ano) const { return ano.type == type && ano.index == index; }
 	bool operator!=(const Symbol &ano) const { return !(*this == ano); }
-	bool operator<(const Symbol &ano) const { return index * (type == T ? 1 : -1) < ano.index * (ano.type == T ? 1 : -1); }
 };
+
+inline uint qHash(const Symbol &key, uint seed){
+	return qHash(key.index * (key.type == Symbol::SymbolType::T ? 1 : -1), seed);
+}
 
 template <bool isTerminatorTable>
 class SymbolTable
 {
 private:
 	Symbol::SymbolType type;
-	vector<string> symbols;
+	QVector<QString> symbols;
 
 public:
 	SymbolTable();
-	int getIndex(const string &str);						 // if str not exist, push it into symbols
-	int getIndex(const string &str, bool) const; // return -1 if str not exist
-	string getStr(int i) const;									 // return blank string if i is invalid
+	int getIndex(const QString &str);							// if str not exist, push it into symbols
+	int getIndex(const QString &str, bool) const; // return -1 if str not exist
+	QString getStr(int i) const;									// return blank QString if i is invalid
 	int size() const { return symbols.size(); }
 };
 
@@ -52,7 +54,7 @@ template <bool b>
 SymbolTable<b>::SymbolTable() {}
 
 template <bool b>
-int SymbolTable<b>::getIndex(const string &str)
+int SymbolTable<b>::getIndex(const QString &str)
 {
 	for (int i = 0; i < symbols.size(); ++i)
 	{
@@ -65,7 +67,7 @@ int SymbolTable<b>::getIndex(const string &str)
 }
 
 template <bool b>
-int SymbolTable<b>::getIndex(const string &str, bool) const
+int SymbolTable<b>::getIndex(const QString &str, bool) const
 {
 	for (int i = 0; i < symbols.size(); ++i)
 	{
@@ -76,7 +78,7 @@ int SymbolTable<b>::getIndex(const string &str, bool) const
 }
 
 template <bool b>
-string SymbolTable<b>::getStr(int i) const
+QString SymbolTable<b>::getStr(int i) const
 {
 	if (i >= 0 && i < symbols.size())
 		return symbols[i];
