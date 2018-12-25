@@ -42,3 +42,20 @@ do {
 	else error();
 } while (1);
 ```
+
+## 设计
+
+### 输入与存储
+
+使用之前写的[语法分析器](https://github.com/DiscreteTom/Compiler-Grammatical-Analyzer)的符号表数据结构，定义Symbol类区分非终结符和终结符，定义SymbolTable类保存符号表
+
+输入限制：因为要给此文法设计翻译程序，所以不支持输入自定义文法。此程序只对此文法进行翻译。可以输入待解析符号串。
+
+### 工作流程设计
+
+1. 计算FIRST集
+2. 计算FOLLOW集
+3. 构造DFA
+4. 构造分析表
+5. 输入文法符号串
+6. 使用预测分析表分析
