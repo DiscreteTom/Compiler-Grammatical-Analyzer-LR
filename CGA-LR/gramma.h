@@ -15,21 +15,46 @@ struct Project
 	int tIndex;
 	int candidateIndex;
 	int index; // position of Point in a project
-	bool operator==(const Project &ano)const{return tIndex == ano.tIndex && candidateIndex == ano.candidateIndex && index == ano.index;}
+	bool operator==(const Project &ano) const { return tIndex == ano.tIndex && candidateIndex == ano.candidateIndex && index == ano.index; }
+	bool operator<(const Project &ano) const
+	{
+		if (tIndex != ano.tIndex)
+			return tIndex < ano.tIndex;
+		else if (candidateIndex != ano.candidateIndex)
+			return candidateIndex < ano.candidateIndex;
+		else
+			return index < ano.index;
+	}
+	bool operator!=(const Project &ano) const { return !(*this == ano); }
 };
 
 // generate a hash value for Project
 inline uint qHash(const Project &key, uint seed)
 {
-	return qHash(key.tIndex * 1000 + key.candidateIndex * 100 + key.index, seed);
+	return qHash(1000 * key.tIndex + 100 * key.candidateIndex + key.index, seed);
 }
 
-using State = QSet<Project>;
+using State = QVector<Project>;
 
 struct DFA_Key
 {
 	State state;
 	Symbol s;
+	bool operator<(const DFA_Key &ano) const
+	{
+		if (state.size() != ano.state.size())
+			return state.size() < ano.state.size();
+		else
+		{
+			for (int i = 0; i < state.size(); ++i)
+			{
+				if (state[i] != ano.state[i])
+					return state[i] < ano.state[i];
+			}
+		}
+		return s < ano.s;
+	}
+	bool operator==(const DFA_Key &ano) { return state == ano.state && s == ano.s; }
 };
 
 using DFA = QMap<DFA_Key, State>;
@@ -49,6 +74,7 @@ private:
 	// process
 	QVector<First> firsts;
 	QVector<Follow> follows;
+	QVector<State> states;
 	DFA dfa;
 
 	void killBlank(QString &str) const; // discard blank chars
@@ -69,6 +95,7 @@ private:
 	int candidateCount() const;
 	Candidate parseInputToCandidate(const QString &str) const; // return empty candidate if error
 	void outputSingleCandidate(int ntIndex, int candidateIndex) const;
+	void outputProject(const Project &p) const;
 
 public:
 	GrammaTable() : lineCount(0), error(false) {}

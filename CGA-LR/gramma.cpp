@@ -211,12 +211,44 @@ void GrammaTable::getFollows()
 
 void GrammaTable::getDFA()
 {
+	states.clear();
 	dfa.clear();
 
 	// get the first state
 	State firstState;
-	firstState.insert({0, 0, 0});
-	getState(firstState);
+	firstState.push_back({0, 0, 0});
+	states.push_back(firstState);
+
+	// now try to expand dfa
+	for (int i = 0; i < states.size(); ++i)
+	{
+		State &state = states[i];
+		getState(state); // construct the whole state
+		// expand
+		for (auto project : state)
+		{
+			if (project.index < grammas[project.tIndex][project.candidateIndex].size())
+			{
+				// pointer can move right
+				auto sym = grammas[project.tIndex][project.candidateIndex][project.index];
+				++project.index;
+				if (!dfa.contains({state, sym}))
+				{
+					// construct a new state
+					State t;
+					t.push_back(project);
+					states.push_back(t);
+					dfa.insert({state, sym}, t);
+				}
+				else
+				{
+					// add this project to that state
+					DFA_Key key = {state, sym};
+					dfa[key].push_back(project);
+				}
+			}
+		}
+	}
 }
 
 void GrammaTable::getState(State &state)
@@ -226,20 +258,24 @@ void GrammaTable::getState(State &state)
 	while (flag)
 	{
 		flag = false;
-		for (auto p : state)
+		for (int i = 0; i < state.size(); ++i)
 		{
+			auto p = state.begin() + i;
 			// for each project
-			if (grammas[p.tIndex][p.candidateIndex][p.index].type == Symbol::SymbolType::NT)
+			if (p->index >= grammas[p->tIndex][p->candidateIndex].size())
+				continue;
+			if (grammas[p->tIndex][p->candidateIndex][p->index].type == Symbol::SymbolType::NT)
 			{
 				// this is an NT, should add all its candidates
-				int ntIndex = grammas[p.tIndex][p.candidateIndex][p.index].index;
+				int ntIndex = grammas[p->tIndex][p->candidateIndex][p->index].index;
 				for (int j = 0; j < grammas[ntIndex].size(); ++j)
 				{
-					Project t = {ntIndex, 0, 0};
+					Project t = {ntIndex, j, 0};
 					if (!state.contains(t))
 					{
 						flag = true;
-						state.insert(t);
+						i = -1; // restart loop
+						state.push_back(t);
 					}
 				}
 			}
@@ -479,6 +515,7 @@ bool GrammaTable::generate()
 		return false;
 	getFirsts();
 	getFollows();
+	getDFA();
 	return true;
 }
 
@@ -496,6 +533,26 @@ void GrammaTable::outputSingleCandidate(int ntIndex, int candidateIndex) const
 			cout << tTable.getStr(symbol.index);
 		}
 	}
+}
+
+void GrammaTable::outputProject(const Project &p) const
+{
+	cout << ntTable.getStr(p.tIndex) << " -> ";
+	for (int i = 0; i < grammas[p.tIndex][p.candidateIndex].size(); ++i)
+	{
+		if (i == p.index)
+			cout << ".";
+		if (grammas[p.tIndex][p.candidateIndex][i].type == Symbol::SymbolType::NT)
+		{
+			cout << ntTable.getStr(grammas[p.tIndex][p.candidateIndex][i].index);
+		}
+		else
+		{
+			cout << tTable.getStr(grammas[p.tIndex][p.candidateIndex][i].index);
+		}
+	}
+	if (p.index == grammas[p.tIndex][p.candidateIndex].size())
+		cout << ".";
 }
 
 void GrammaTable::output() const
@@ -571,6 +628,18 @@ void GrammaTable::output() const
 		cout << "\n";
 	}
 	cout << endl;
+
+	cout << "DFA states:\n";
+	for (int i = 0; i < states.size(); ++i)
+	{
+		cout << "State[" << i << "]:\n";
+		for (auto project : states[i])
+		{
+			cout << '\t';
+			outputProject(project);
+			cout << endl;
+		}
+	}
 }
 
 bool GrammaTable::parse(const QString &str) const
