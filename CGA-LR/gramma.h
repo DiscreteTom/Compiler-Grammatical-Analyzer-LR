@@ -10,6 +10,20 @@ using Gramma = QVector<Candidate>;
 using First = QSet<Symbol>;
 using Follow = QSet<Symbol>;
 
+struct Project{
+	Candidate cdd;
+	int index;
+};
+
+using State = QVector<Project>;
+
+struct DFA_Key{
+	State state;
+	Symbol s;
+};
+
+using DFA = QMap<DFA_Key, State>;
+
 class GrammaTable
 {
 private:
@@ -25,6 +39,7 @@ private:
 	// process
 	QVector<First> firsts;
 	QVector<Follow> follows;
+	QVector<Candidate> candidates; // to give every candidate an index
 
 	void killBlank(QString &str) const; // discard blank chars
 	bool format(QString &str) const;		// return false if format is wrong
@@ -42,10 +57,14 @@ private:
 	void outputSingleCandidate(int ntIndex, int candidateIndex) const;
 
 public:
-	GrammaTable() : lineCount(0), error(false){};
+	GrammaTable() : lineCount(0), error(false){}
 
 	int insert(const QString &grammaLine); // return 0 if ok, otherwise return lineCount
-	bool generate();											 // generate first set, follow set and predict table, return false if error
+	/**
+	 * generate first set, follow set, index of candidates and predict table
+	 * return false if error
+	 */
+	bool generate();
 	void output() const;
 
 	bool ok() const { return !error; }

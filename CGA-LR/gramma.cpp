@@ -421,6 +421,12 @@ bool GrammaTable::generate()
 		return false;
 	getFirsts();
 	getFollows();
+	// generate index of candidates
+	for (auto gramma : grammas){
+		for (auto candidate: gramma){
+			candidates.push_back(candidate);
+		}
+	}
 	return true;
 }
 
