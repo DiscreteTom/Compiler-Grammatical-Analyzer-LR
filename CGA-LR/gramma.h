@@ -10,14 +10,23 @@ using Gramma = QVector<Candidate>;
 using First = QSet<Symbol>;
 using Follow = QSet<Symbol>;
 
-struct Project{
-	Candidate cdd;
-	int index;
+struct Project
+{
+	int tIndex;
+	int candidateIndex;
+	int index; // position of Point in a project
 };
 
-using State = QVector<Project>;
+// generate a hash value for Project
+inline uint qHash(const Project &key, uint seed)
+{
+	return qHash(key.tIndex * 1000 + key.candidateIndex * 100 + key.index, seed);
+}
 
-struct DFA_Key{
+using State = QSet<Project>;
+
+struct DFA_Key
+{
 	State state;
 	Symbol s;
 };
@@ -39,6 +48,7 @@ private:
 	// process
 	QVector<First> firsts;
 	QVector<Follow> follows;
+	DFA dfa;
 
 	void killBlank(QString &str) const; // discard blank chars
 	bool format(QString &str) const;		// return false if format is wrong
@@ -52,13 +62,15 @@ private:
 	void getFirsts();
 	First getFirst(const Candidate &candidate) const;
 	void getFollows();
+	void getDFA();							 // construct DFA
+	void getState(State &state); // construct a state
 	int getIndex(int ntIndex, int candidateIndex) const;
 	int candidateCount() const;
 	Candidate parseInputToCandidate(const QString &str) const; // return empty candidate if error
 	void outputSingleCandidate(int ntIndex, int candidateIndex) const;
 
 public:
-	GrammaTable() : lineCount(0), error(false){}
+	GrammaTable() : lineCount(0), error(false) {}
 
 	int insert(const QString &grammaLine); // return 0 if ok, otherwise return lineCount
 	/**

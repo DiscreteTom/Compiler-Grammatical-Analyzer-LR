@@ -209,10 +209,49 @@ void GrammaTable::getFollows()
 	}
 }
 
+void GrammaTable::getDFA()
+{
+	dfa.clear();
+
+	// get the first state
+	State firstState;
+	firstState.insert({0, 0, 0});
+}
+
+void GrammaTable::getState(State &state)
+{
+	// make sure that state has at least one project
+	bool flag = true; // flag of loop, should be false if there is no change after a loop
+	while (flag)
+	{
+		flag = false;
+		for (int i = 0; i < state.size(); ++i)
+		{
+			// for each project
+			Project p = state[i];
+			if (grammas[p.tIndex][p.candidateIndex][p.index].type == Symbol::SymbolType::NT)
+			{
+				// this is an NT, should add all its candidates
+				int ntIndex = grammas[p.tIndex][p.candidateIndex][p.index].index;
+				for (int j = 0; j < grammas[ntIndex].size(); ++j)
+				{
+					Project t = {ntIndex, 0, 0};
+					if (!state.contains(t))
+					{
+						flag = true;
+						state.insert(t);
+					}
+				}
+			}
+		}
+	}
+}
+
 int GrammaTable::getIndex(int ntIndex, int candidateIndex) const
 {
 	int result = 0;
-	for (int i = 0; i < ntIndex; ++i){
+	for (int i = 0; i < ntIndex; ++i)
+	{
 		result += grammas[i].size();
 	}
 	return result + candidateIndex;
@@ -221,7 +260,8 @@ int GrammaTable::getIndex(int ntIndex, int candidateIndex) const
 int GrammaTable::candidateCount() const
 {
 	int result = 0;
-	for (const auto &gramma : grammas){
+	for (const auto &gramma : grammas)
+	{
 		result += gramma.size();
 	}
 	return result;
@@ -496,8 +536,10 @@ void GrammaTable::output() const
 
 	cout << "Candidates with index:\n";
 	int index = 0;
-	for (int i = 0; i < grammas.size(); ++i){
-		for (int j = 0; j < grammas[i].size(); ++j){
+	for (int i = 0; i < grammas.size(); ++i)
+	{
+		for (int j = 0; j < grammas[i].size(); ++j)
+		{
 			cout << index << "\t";
 			outputSingleCandidate(i, j);
 			++index;

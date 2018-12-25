@@ -18,7 +18,8 @@ struct Symbol
 	bool operator!=(const Symbol &ano) const { return !(*this == ano); }
 };
 
-inline uint qHash(const Symbol &key, uint seed){
+inline uint qHash(const Symbol &key, uint seed)
+{
 	return qHash(key.index * (key.type == Symbol::SymbolType::T ? 1 : -1), seed);
 }
 
