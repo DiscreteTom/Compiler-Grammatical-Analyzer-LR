@@ -16,6 +16,15 @@ struct Symbol
 
 	bool operator==(const Symbol &ano) const { return ano.type == type && ano.index == index; }
 	bool operator!=(const Symbol &ano) const { return !(*this == ano); }
+	bool operator<(const Symbol &ano) const
+	{
+		if (ano.type == type)
+			return index < ano.index;
+		else if (type == T)
+			return false;
+		else
+			return true;
+	}
 };
 
 inline uint qHash(const Symbol &key, uint seed)
