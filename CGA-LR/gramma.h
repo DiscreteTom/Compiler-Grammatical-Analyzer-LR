@@ -15,6 +15,7 @@ struct Project
 	int tIndex;
 	int candidateIndex;
 	int index; // position of Point in a project
+	bool operator==(const Project &ano)const{return tIndex == ano.tIndex && candidateIndex == ano.candidateIndex && index == ano.index;}
 };
 
 // generate a hash value for Project

@@ -216,6 +216,7 @@ void GrammaTable::getDFA()
 	// get the first state
 	State firstState;
 	firstState.insert({0, 0, 0});
+	getState(firstState);
 }
 
 void GrammaTable::getState(State &state)
@@ -225,10 +226,9 @@ void GrammaTable::getState(State &state)
 	while (flag)
 	{
 		flag = false;
-		for (int i = 0; i < state.size(); ++i)
+		for (auto p : state)
 		{
 			// for each project
-			Project p = state[i];
 			if (grammas[p.tIndex][p.candidateIndex][p.index].type == Symbol::SymbolType::NT)
 			{
 				// this is an NT, should add all its candidates
