@@ -217,35 +217,60 @@ void GrammaTable::getDFA()
 	// get the first state
 	State firstState;
 	firstState.push_back({0, 0, 0});
+	getState(firstState); // construct the whole state
 	states.push_back(firstState);
 
 	// now try to expand dfa
 	for (int i = 0; i < states.size(); ++i)
 	{
-		State &state = states[i];
-		getState(state); // construct the whole state
+		State state = states[i];
+		QVector<State> tStates;
+		DFA tDfa;
 		// expand
-		for (auto project : state)
+		for (int j = 0; j < state.size(); ++j)
 		{
+			// for each project
+			auto project = state[j];
 			if (project.index < grammas[project.tIndex][project.candidateIndex].size())
 			{
 				// pointer can move right
-				auto sym = grammas[project.tIndex][project.candidateIndex][project.index];
+				auto sym = grammas[project.tIndex][project.candidateIndex][project.index]; // store symbol
 				++project.index;
-				if (!dfa.contains({state, sym}))
+				if (!tDfa.contains({state, sym}))
 				{
 					// construct a new state
 					State t;
 					t.push_back(project);
-					states.push_back(t);
-					dfa.insert({state, sym}, t);
+					tStates.push_back(t);
+					tDfa.insert({state, sym}, t);
 				}
 				else
 				{
 					// add this project to that state
 					DFA_Key key = {state, sym};
-					dfa[key].push_back(project);
+					int index = tStates.indexOf(tDfa[key]);
+					tStates[index].push_back(project);
+					tDfa[key] = tStates[index];
 				}
+			}
+		}
+		// every project in state has been added to tStates
+		// construct tStates and tDfa
+		for (auto & s : tStates){
+			auto key = tDfa.key(s);
+			getState(s);
+			tDfa[key] = s;
+		}
+
+		// check duplicated state from tDfa and dfa, merge dfa and tDfa
+		auto keys = tDfa.keys();
+		for (auto key : keys){
+			int index = states.indexOf(tDfa[key]);
+			if (index == -1){
+				states.push_back(tDfa[key]);
+				dfa.insert(key, tDfa[key]);
+			} else {
+				dfa.insert(key, states[index]);
 			}
 		}
 	}
@@ -639,6 +664,14 @@ void GrammaTable::output() const
 			outputProject(project);
 			cout << endl;
 		}
+	}
+	cout << endl;
+
+	cout << "DFA goto:\n";
+	auto keys = dfa.keys();
+	for (auto key : keys){
+		cout << states.indexOf(key.state) << " -> " << states.indexOf(dfa[key]);
+		cout << endl;
 	}
 }
 
