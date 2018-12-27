@@ -580,6 +580,12 @@ void GrammaTable::outputProject(const Project &p) const
 		cout << ".";
 }
 
+void GrammaTable::outputSymbol(const Symbol &s) const
+{
+	if (s.type == Symbol::SymbolType::T)cout<<tTable.getStr(s.index);
+	else cout << ntTable.getStr(s.index);
+}
+
 void GrammaTable::output() const
 {
 	if (error)
@@ -670,7 +676,9 @@ void GrammaTable::output() const
 	cout << "DFA goto:\n";
 	auto keys = dfa.keys();
 	for (auto key : keys){
-		cout << states.indexOf(key.state) << " -> " << states.indexOf(dfa[key]);
+		cout << states.indexOf(key.state) << " + '";
+		outputSymbol(key.s);
+		cout << "' -> " << states.indexOf(dfa[key]);
 		cout << endl;
 	}
 }

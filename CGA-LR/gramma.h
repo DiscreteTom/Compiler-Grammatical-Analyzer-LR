@@ -96,6 +96,7 @@ private:
 	Candidate parseInputToCandidate(const QString &str) const; // return empty candidate if error
 	void outputSingleCandidate(int ntIndex, int candidateIndex) const;
 	void outputProject(const Project &p) const;
+	void outputSymbol(const Symbol &s) const;
 
 public:
 	GrammaTable() : lineCount(0), error(false) {}
