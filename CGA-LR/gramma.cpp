@@ -318,6 +318,11 @@ int GrammaTable::getIndex(int ntIndex, int candidateIndex) const
 	return result + candidateIndex;
 }
 
+void GrammaTable::getSLR_Table()
+{
+
+}
+
 int GrammaTable::candidateCount() const
 {
 	int result = 0;
@@ -541,6 +546,7 @@ bool GrammaTable::generate()
 	getFirsts();
 	getFollows();
 	getDFA();
+	getSLR_Table();
 	return true;
 }
 

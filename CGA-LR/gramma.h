@@ -59,6 +59,20 @@ struct DFA_Key
 
 using DFA = QMap<DFA_Key, State>;
 
+struct Action{
+	enum ActionType{
+		Shift,
+		Reduce,
+		Goto,
+		Accept
+	};
+	ActionType type;
+	int index;
+};
+
+using StateIndex = int;
+using SLR_Table = QMap<StateIndex, Action>;
+
 class GrammaTable
 {
 private:
@@ -76,6 +90,7 @@ private:
 	QVector<Follow> follows;
 	QVector<State> states;
 	DFA dfa;
+	SLR_Table slrTable;
 
 	void killBlank(QString &str) const; // discard blank chars
 	bool format(QString &str) const;		// return false if format is wrong
@@ -92,6 +107,7 @@ private:
 	void getDFA();							 // construct DFA
 	void getState(State &state); // construct a state
 	int getIndex(int ntIndex, int candidateIndex) const;
+	void getSLR_Table();
 	int candidateCount() const;
 	Candidate parseInputToCandidate(const QString &str) const; // return empty candidate if error
 	void outputSingleCandidate(int ntIndex, int candidateIndex) const;
