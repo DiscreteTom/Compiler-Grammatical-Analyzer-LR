@@ -320,7 +320,47 @@ int GrammaTable::getIndex(int ntIndex, int candidateIndex) const
 
 void GrammaTable::getSLR_Table()
 {
+	auto keys = dfa.keys();
+	for (auto key : keys){
+		if (key.s.type == Symbol::SymbolType::T){
+			int ntIndex;
+			int candidateIndex;
+			// get ntIndex and candidateIndex
+			int reduceIndex = getReduceIndex(key.state, ntIndex, candidateIndex);
+			if (ntIndex != -1 && candidateIndex != -1){
+				// reduce
+				if (reduceIndex != 0)
+				slrTable.insert(key, {Action::ActionType::Reduce, reduceIndex});
+				else // accept
+					slrTable.insert(key, {Action::ActionType::Accept, 0});
+			} else {
+				// shift
+				slrTable.insert(key, {Action::ActionType::Shift, states.indexOf(dfa[key])});
+			}
+		} else {
+			// this is a non-terminator, action.type = goto
+			slrTable.insert(key, {Action::ActionType::Goto, states.indexOf(dfa[key])});
+		}
+	}
+}
 
+int GrammaTable::getReduceIndex(const State &s, int &ntIndex, int &candidateIndex) const
+{
+	int result = 0;
+	ntIndex = candidateIndex = -1;
+	for (auto p : s){
+		if (p.index == grammas[p.tIndex][p.candidateIndex].size()){
+			ntIndex = p.tIndex;
+			candidateIndex = p.candidateIndex;
+		}
+	}
+	if (ntIndex != -1 && candidateIndex != -1){
+		for (int i = 0; i < ntIndex; ++i){
+			result += grammas[ntIndex].size();
+		}
+		result += candidateIndex;
+	}
+	return result;
 }
 
 int GrammaTable::candidateCount() const
@@ -592,6 +632,24 @@ void GrammaTable::outputSymbol(const Symbol &s) const
 	else cout << ntTable.getStr(s.index);
 }
 
+void GrammaTable::outputSLR_Key(const SLR_Key &key) const
+{
+	cout << states.indexOf(key.state) << " + '";
+	outputSymbol(key.s);
+	cout << "'";
+}
+
+void GrammaTable::outputAction(const Action &a) const
+{
+	switch(a.type){
+	case Action::ActionType::Accept:cout <<"ACC";break;
+	case Action::ActionType::Goto: cout << "GOTO "<<a.index;break;
+	case Action::ActionType::Reduce: cout <<"R"<<a.index;break;
+	case Action::ActionType::Shift:cout<<"S"<<a.index;break;
+	default:break;
+	}
+}
+
 void GrammaTable::output() const
 {
 	if (error)
@@ -685,6 +743,16 @@ void GrammaTable::output() const
 		cout << states.indexOf(key.state) << " + '";
 		outputSymbol(key.s);
 		cout << "' -> " << states.indexOf(dfa[key]);
+		cout << endl;
+	}
+	cout << endl;
+
+	cout << "SLR_1 table:\n";
+	auto slrKeys = slrTable.keys();
+	for (auto key : slrKeys){
+		outputSLR_Key(key);
+		cout << " -> ";
+		outputAction(slrTable[key]);
 		cout << endl;
 	}
 }

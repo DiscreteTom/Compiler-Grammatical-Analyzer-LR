@@ -70,8 +70,8 @@ struct Action{
 	int index;
 };
 
-using StateIndex = int;
-using SLR_Table = QMap<StateIndex, Action>;
+using SLR_Key = DFA_Key;
+using SLR_Table = QMap<SLR_Key, Action>;
 
 class GrammaTable
 {
@@ -108,11 +108,14 @@ private:
 	void getState(State &state); // construct a state
 	int getIndex(int ntIndex, int candidateIndex) const;
 	void getSLR_Table();
+	int getReduceIndex(const State &s, int & ntIndex, int & candidateIndex)const;
 	int candidateCount() const;
 	Candidate parseInputToCandidate(const QString &str) const; // return empty candidate if error
 	void outputSingleCandidate(int ntIndex, int candidateIndex) const;
 	void outputProject(const Project &p) const;
 	void outputSymbol(const Symbol &s) const;
+	void outputSLR_Key(const SLR_Key &key)const ;
+	void outputAction(const Action &a)const;
 
 public:
 	GrammaTable() : lineCount(0), error(false) {}
