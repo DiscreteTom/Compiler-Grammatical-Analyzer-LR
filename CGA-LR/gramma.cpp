@@ -256,7 +256,8 @@ void GrammaTable::getDFA()
 		}
 		// every project in state has been added to tStates
 		// construct tStates and tDfa
-		for (auto & s : tStates){
+		for (auto &s : tStates)
+		{
 			auto key = tDfa.key(s);
 			getState(s);
 			tDfa[key] = s;
@@ -264,12 +265,16 @@ void GrammaTable::getDFA()
 
 		// check duplicated state from tDfa and dfa, merge dfa and tDfa
 		auto keys = tDfa.keys();
-		for (auto key : keys){
+		for (auto key : keys)
+		{
 			int index = states.indexOf(tDfa[key]);
-			if (index == -1){
+			if (index == -1)
+			{
 				states.push_back(tDfa[key]);
 				dfa.insert(key, tDfa[key]);
-			} else {
+			}
+			else
+			{
 				dfa.insert(key, states[index]);
 			}
 		}
@@ -321,23 +326,30 @@ int GrammaTable::getIndex(int ntIndex, int candidateIndex) const
 void GrammaTable::getSLR_Table()
 {
 	auto keys = dfa.keys();
-	for (auto key : keys){
-		if (key.s.type == Symbol::SymbolType::T){
+	for (auto key : keys)
+	{
+		if (key.s.type == Symbol::SymbolType::T)
+		{
 			int ntIndex;
 			int candidateIndex;
 			// get ntIndex and candidateIndex
 			int reduceIndex = getReduceIndex(key.state, ntIndex, candidateIndex);
-			if (ntIndex != -1 && candidateIndex != -1){
+			if (ntIndex != -1 && candidateIndex != -1)
+			{
 				// reduce
 				if (reduceIndex != 0)
-				slrTable.insert(key, {Action::ActionType::Reduce, reduceIndex});
+					slrTable.insert(key, {Action::ActionType::Reduce, reduceIndex});
 				else // accept
 					slrTable.insert(key, {Action::ActionType::Accept, 0});
-			} else {
+			}
+			else
+			{
 				// shift
 				slrTable.insert(key, {Action::ActionType::Shift, states.indexOf(dfa[key])});
 			}
-		} else {
+		}
+		else
+		{
 			// this is a non-terminator, action.type = goto
 			slrTable.insert(key, {Action::ActionType::Goto, states.indexOf(dfa[key])});
 		}
@@ -348,14 +360,18 @@ int GrammaTable::getReduceIndex(const State &s, int &ntIndex, int &candidateInde
 {
 	int result = 0;
 	ntIndex = candidateIndex = -1;
-	for (auto p : s){
-		if (p.index == grammas[p.tIndex][p.candidateIndex].size()){
+	for (auto p : s)
+	{
+		if (p.index == grammas[p.tIndex][p.candidateIndex].size())
+		{
 			ntIndex = p.tIndex;
 			candidateIndex = p.candidateIndex;
 		}
 	}
-	if (ntIndex != -1 && candidateIndex != -1){
-		for (int i = 0; i < ntIndex; ++i){
+	if (ntIndex != -1 && candidateIndex != -1)
+	{
+		for (int i = 0; i < ntIndex; ++i)
+		{
 			result += grammas[ntIndex].size();
 		}
 		result += candidateIndex;
@@ -628,8 +644,10 @@ void GrammaTable::outputProject(const Project &p) const
 
 void GrammaTable::outputSymbol(const Symbol &s) const
 {
-	if (s.type == Symbol::SymbolType::T)cout<<tTable.getStr(s.index);
-	else cout << ntTable.getStr(s.index);
+	if (s.type == Symbol::SymbolType::T)
+		cout << tTable.getStr(s.index);
+	else
+		cout << ntTable.getStr(s.index);
 }
 
 void GrammaTable::outputSLR_Key(const SLR_Key &key) const
@@ -641,12 +659,22 @@ void GrammaTable::outputSLR_Key(const SLR_Key &key) const
 
 void GrammaTable::outputAction(const Action &a) const
 {
-	switch(a.type){
-	case Action::ActionType::Accept:cout <<"ACC";break;
-	case Action::ActionType::Goto: cout << "GOTO "<<a.index;break;
-	case Action::ActionType::Reduce: cout <<"R"<<a.index;break;
-	case Action::ActionType::Shift:cout<<"S"<<a.index;break;
-	default:break;
+	switch (a.type)
+	{
+	case Action::ActionType::Accept:
+		cout << "ACC";
+		break;
+	case Action::ActionType::Goto:
+		cout << "GOTO " << a.index;
+		break;
+	case Action::ActionType::Reduce:
+		cout << "R" << a.index;
+		break;
+	case Action::ActionType::Shift:
+		cout << "S" << a.index;
+		break;
+	default:
+		break;
 	}
 }
 
@@ -739,7 +767,8 @@ void GrammaTable::output() const
 
 	cout << "DFA goto:\n";
 	auto keys = dfa.keys();
-	for (auto key : keys){
+	for (auto key : keys)
+	{
 		cout << states.indexOf(key.state) << " + '";
 		outputSymbol(key.s);
 		cout << "' -> " << states.indexOf(dfa[key]);
@@ -749,7 +778,8 @@ void GrammaTable::output() const
 
 	cout << "SLR_1 table:\n";
 	auto slrKeys = slrTable.keys();
-	for (auto key : slrKeys){
+	for (auto key : slrKeys)
+	{
 		outputSLR_Key(key);
 		cout << " -> ";
 		outputAction(slrTable[key]);
