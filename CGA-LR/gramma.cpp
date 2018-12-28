@@ -337,8 +337,11 @@ void GrammaTable::getSLR_Table()
 			if (ntIndex != -1 && candidateIndex != -1)
 			{
 				// reduce
-				if (reduceIndex != 0)
-					slrTable.insert(key, {Action::ActionType::Reduce, reduceIndex});
+				if (reduceIndex != 0){
+					for (auto s : follows[ntIndex]){
+						slrTable.insert({key.state, s}, {Action::ActionType::Reduce, reduceIndex});
+					}
+				}
 				else // accept
 					slrTable.insert(key, {Action::ActionType::Accept, 0});
 			}
