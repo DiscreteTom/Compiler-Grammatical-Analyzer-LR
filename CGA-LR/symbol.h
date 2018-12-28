@@ -45,6 +45,10 @@ public:
 	int getIndex(const QString &str, bool) const; // return -1 if str not exist
 	QString getStr(int i) const;									// return blank QString if i is invalid
 	int size() const { return symbols.size(); }
+	Symbol operator[](int n)const{
+		Symbol result = {type, n};
+		return result;
+	}
 };
 
 const Symbol EPSILON = {Symbol::SymbolType::T, 0};
