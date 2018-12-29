@@ -325,35 +325,32 @@ int GrammaTable::getIndex(int ntIndex, int candidateIndex) const
 
 void GrammaTable::getSLR_Table()
 {
+	// get reduce and accept
+	for (auto state : states){
+		int ntIndex;
+		int candidateIndex;
+		int reduceIndex = getReduceIndex(state, ntIndex, candidateIndex);
+		if (ntIndex != -1 && candidateIndex != -1){
+			//reduce
+			for (auto s : follows[ntIndex]){
+				Action a;
+				a.index = reduceIndex;
+				if (reduceIndex == 0){
+					a.type = Action::ActionType::Accept;
+				} else {
+					a.type = Action::ActionType::Reduce;
+				}
+				slrTable.insert({state, s}, a);
+			}
+		}
+	}
 	auto keys = dfa.keys();
 	for (auto key : keys)
 	{
 		if (key.s.type == Symbol::SymbolType::T)
 		{
-			int ntIndex;
-			int candidateIndex;
-			// get ntIndex and candidateIndex
-			int reduceIndex = getReduceIndex(key.state, ntIndex, candidateIndex);
-			if (ntIndex != -1 && candidateIndex != -1)
-			{
-				// reduce
-				if (reduceIndex != 0){
-					for (auto s : follows[ntIndex]){
-						slrTable.insert({key.state, s}, {Action::ActionType::Reduce, reduceIndex});
-					}
-				}
-				else // accept
-				{
-					for (auto s : follows[ntIndex]){
-						slrTable.insert({key.state, s}, {Action::ActionType::Accept, 0});
-					}
-				}
-			}
-			else
-			{
-				// shift
-				slrTable.insert(key, {Action::ActionType::Shift, states.indexOf(dfa[key])});
-			}
+			// shift
+			slrTable.insert(key, {Action::ActionType::Shift, states.indexOf(dfa[key])});
 		}
 		else
 		{
@@ -373,13 +370,14 @@ int GrammaTable::getReduceIndex(const State &s, int &ntIndex, int &candidateInde
 		{
 			ntIndex = p.tIndex;
 			candidateIndex = p.candidateIndex;
+			break;
 		}
 	}
 	if (ntIndex != -1 && candidateIndex != -1)
 	{
 		for (int i = 0; i < ntIndex; ++i)
 		{
-			result += grammas[ntIndex].size();
+			result += grammas[i].size();
 		}
 		result += candidateIndex;
 	}
@@ -390,7 +388,7 @@ void GrammaTable::getCandidateIndex(int index, int &ntIndex, int &candidateIndex
 {
 	ntIndex = candidateIndex = -1;
 	for (int i = 0; i < grammas.size(); ++i){
-		if (index > grammas[i].size()){
+		if (index >= grammas[i].size()){
 			index -= grammas[i].size();
 			continue;
 		} else {
