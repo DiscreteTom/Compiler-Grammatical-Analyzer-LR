@@ -7,8 +7,20 @@
 
 using namespace std;
 
+void showDeveloper()
+{
+	cout << "******************************************************************\n"
+			 << "              Compiler-Grammatical-Analyzer-LR(CGA-LR)\n"
+			 << "                    Written By DiscreteTom\n"
+			 << "                See source code and report BUG at\n"
+			 << " https://github.com/DiscreteTom/Compiler-Grammatical-Analyzer-LR\n"
+			 << "******************************************************************\n\n";
+}
+
 int main(/*int argc, char *argv[]*/)
 {
+	showDeveloper();
+
 	GrammaTable gt;
 	QString t;
 
