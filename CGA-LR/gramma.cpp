@@ -796,7 +796,7 @@ void GrammaTable::output() const
 	}
 	cout << endl;
 
-	cout << "DFA states:\n";
+	cout << "LR(0) DFA states:\n";
 	for (int i = 0; i < states.size(); ++i)
 	{
 		cout << "State[" << i << "]:\n";
@@ -809,7 +809,7 @@ void GrammaTable::output() const
 	}
 	cout << endl;
 
-	cout << "DFA goto:\n";
+	cout << "LR(0) DFA transition functions:\n";
 	auto keys = dfa.keys();
 	for (auto key : keys)
 	{
