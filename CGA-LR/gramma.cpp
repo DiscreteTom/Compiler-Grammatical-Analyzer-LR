@@ -914,6 +914,10 @@ bool GrammaTable::parse(const QString &str, bool calculateResult) const
 				case 6: // T -> F { T.v = F.v }
 					break;
 				case 7: // F -> (E) { F.v = E.v }
+					valueStack.pop();
+					t = valueStack.top();
+					valueStack.pop();
+					valueStack.top() = t;
 					break;
 				case 8: // F -> num { F.v = num.v }
 					break;
