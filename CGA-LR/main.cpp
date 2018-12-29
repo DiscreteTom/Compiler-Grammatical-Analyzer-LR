@@ -27,7 +27,7 @@ int main(/*int argc, char *argv[]*/)
 		getline(cin, t);
 		if (t.length())
 		{
-			gt.parse(t);
+			gt.parse(t, true);
 		}
 		else
 		{

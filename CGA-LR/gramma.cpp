@@ -441,21 +441,26 @@ First GrammaTable::getFirst(const Candidate &candidate) const
 	return result;
 }
 
-Candidate GrammaTable::parseInputToCandidate(const QString &str) const
+Candidate GrammaTable::parseInputToCandidate(const QString &str, QVector<int> *values) const
 {
 	int i = 0;
 	Candidate result;
 	while (i < str.length())
 	{
 		QString sym;
+		int value = 0;
 		if (str[i] == '$')
 		{
 			while (i + 1 < str.length() && str[i + 1] != '$')
 			{
 				++i;
+				if (values){
+					value *= 10;
+					value += str[i].toLatin1() - '0';
+				} else
 				sym += str[i];
 			}
-			if (i == str.length() || sym.length() < 2)
+			if (i == str.length() || (sym.length() < 2 && !values))
 			{
 				// no matched $
 				result.clear();
@@ -465,6 +470,7 @@ Candidate GrammaTable::parseInputToCandidate(const QString &str) const
 			{
 				++i;
 			}
+			if (values)sym = "num";
 			int index = tTable.getIndex(sym, false);
 			if (index == -1)
 			{
@@ -472,7 +478,9 @@ Candidate GrammaTable::parseInputToCandidate(const QString &str) const
 				return result;
 			}
 			result.push_back(Symbol({Symbol::SymbolType::T, index}));
+			values->push_back(value);
 			sym = "";
+			value = 0;
 		}
 		else
 		{
@@ -490,6 +498,7 @@ Candidate GrammaTable::parseInputToCandidate(const QString &str) const
 				return result;
 			}
 			result.push_back(Symbol({Symbol::SymbolType::T, index}));
+			if (values)values->push_back(0);
 		}
 		++i;
 	}
@@ -807,9 +816,13 @@ void GrammaTable::output() const
 	}
 }
 
-bool GrammaTable::parse(const QString &str) const
+bool GrammaTable::parse(const QString &str, bool calculateResult) const
 {
-	auto candidate = parseInputToCandidate(str);
+	QVector<int> values;
+	Candidate candidate;
+	if (calculateResult)
+	candidate = parseInputToCandidate(str, &values);
+	else candidate = parseInputToCandidate(str);
 	if (candidate.size() == 0){
 		cout << "Error input.\n";
 		return false;
@@ -817,6 +830,7 @@ bool GrammaTable::parse(const QString &str) const
 	candidate.push_back(END);
 	QStack<int> stateStack;
 	QStack<Symbol> symbolStack;
+	QStack<int> valueStack;
 	stateStack.push(0);
 	symbolStack.push(END);
 	int index = 0; // index of candidate
@@ -828,10 +842,57 @@ bool GrammaTable::parse(const QString &str) const
 		switch(action.type){
 		case Action::ActionType::Accept:
 			cout << "Accepted.\n";
+			if (calculateResult)cout << "Result is "<<valueStack.top()<<endl;
 			return true;
 			break;
 		case Action::ActionType::Reduce:
 		{
+			// calculate value
+			int t = 0;
+			switch (action.index){
+			case 1: // E -> E1 + T { E.v = E1.v + T.v }
+				t = valueStack.top();
+				valueStack.pop();
+				valueStack.pop();
+				t += valueStack.top();
+				valueStack.pop();
+				valueStack.push(t);
+				break;
+			case 2: // E -> E1 - T { E.v = E1.v - T.v }
+			t = valueStack.top();
+				valueStack.pop();
+				valueStack.pop();
+				t = valueStack.top() - t;
+				valueStack.pop();
+				valueStack.push(t);
+				break;
+			case 3: // E -> T { E.v = T.v }
+				break;
+			case 4: // T -> T1 * F { T.v = T1.v * F.v}
+				t = valueStack.top();
+				valueStack.pop();
+				valueStack.pop();
+				t *= valueStack.top();
+				valueStack.pop();
+				valueStack.push(t);
+				break;
+			case 5: // T -> T1 / F { T.v = T1.v / F.v}
+							t = valueStack.top();
+				valueStack.pop();
+				valueStack.pop();
+				t = valueStack.top() / t;
+				valueStack.pop();
+				valueStack.push(t);
+				break;
+			case 6: // T -> F { T.v = F.v }
+				break;
+			case 7: // F -> (E) { F.v = E.v }
+				break;
+			case 8: // F -> num { F.v = num.v }
+				break;
+			default:
+				break;
+			}
 			int ntIndex;
 			int candidateIndex;
 			getCandidateIndex(action.index, ntIndex, candidateIndex);
@@ -841,6 +902,8 @@ bool GrammaTable::parse(const QString &str) const
 			}
 			SLR_Key gotoKey = {states[stateStack.top()], {Symbol::SymbolType::NT, ntIndex}};
 			auto gotoAction = slrTable[gotoKey];
+			outputAction(gotoAction); // output
+			cout << endl;
 			stateStack.push(gotoAction.index);
 			symbolStack.push(ntTable[ntIndex]);
 			--index; // do not increase index
@@ -849,6 +912,7 @@ bool GrammaTable::parse(const QString &str) const
 		case Action::ActionType::Shift:
 			stateStack.push(action.index);
 			symbolStack.push(candidate[index]);
+			valueStack.push(values[index]);
 			break;
 		default:
 			break;

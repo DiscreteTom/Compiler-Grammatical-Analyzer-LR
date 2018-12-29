@@ -111,7 +111,7 @@ private:
 	int getReduceIndex(const State &s, int & ntIndex, int & candidateIndex)const;
 	void getCandidateIndex(int index, int & ntIndex, int & candidateIndex)const;
 	int candidateCount() const;
-	Candidate parseInputToCandidate(const QString &str) const; // return empty candidate if error
+	Candidate parseInputToCandidate(const QString &str, QVector<int> *values = nullptr) const; // return empty candidate if error
 	void outputSingleCandidate(int ntIndex, int candidateIndex) const;
 	void outputProject(const Project &p) const;
 	void outputSymbol(const Symbol &s) const;
@@ -131,5 +131,5 @@ public:
 
 	bool ok() const { return !error; }
 	int currentLineCount() const { return lineCount; }
-	bool parse(const QString &str) const;
+	bool parse(const QString &str, bool calculateResult = false) const;
 };
