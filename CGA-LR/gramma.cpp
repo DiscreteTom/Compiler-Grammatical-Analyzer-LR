@@ -814,6 +814,7 @@ bool GrammaTable::parse(const QString &str) const
 		cout << "Error input.\n";
 		return false;
 	}
+	candidate.push_back(END);
 	QStack<int> stateStack;
 	QStack<Symbol> symbolStack;
 	stateStack.push(0);
@@ -823,6 +824,7 @@ bool GrammaTable::parse(const QString &str) const
 		SLR_Key key = {states[stateStack.top()], candidate[index]};
 		auto action = slrTable[key];
 		outputAction(action);
+		cout << endl;
 		switch(action.type){
 		case Action::ActionType::Accept:
 			cout << "Accepted.\n";
