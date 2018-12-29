@@ -59,8 +59,10 @@ struct DFA_Key
 
 using DFA = QMap<DFA_Key, State>;
 
-struct Action{
-	enum ActionType{
+struct Action
+{
+	enum ActionType
+	{
 		Shift,
 		Reduce,
 		Goto,
@@ -108,15 +110,15 @@ private:
 	void getState(State &state); // construct a state
 	int getIndex(int ntIndex, int candidateIndex) const;
 	void getSLR_Table();
-	int getReduceIndex(const State &s, int & ntIndex, int & candidateIndex)const;
-	void getCandidateIndex(int index, int & ntIndex, int & candidateIndex)const;
+	int getReduceIndex(const State &s, int &ntIndex, int &candidateIndex) const;
+	void getCandidateIndex(int index, int &ntIndex, int &candidateIndex) const;
 	int candidateCount() const;
 	Candidate parseInputToCandidate(const QString &str, QVector<int> *values = nullptr) const; // return empty candidate if error
 	void outputSingleCandidate(int ntIndex, int candidateIndex) const;
 	void outputProject(const Project &p) const;
 	void outputSymbol(const Symbol &s) const;
-	void outputSLR_Key(const SLR_Key &key)const ;
-	void outputAction(const Action &a)const;
+	void outputSLR_Key(const SLR_Key &key) const;
+	void outputAction(const Action &a) const;
 
 public:
 	GrammaTable() : lineCount(0), error(false) {}
