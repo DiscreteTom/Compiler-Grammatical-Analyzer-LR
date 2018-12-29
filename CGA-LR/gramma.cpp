@@ -231,10 +231,10 @@ void GrammaTable::getDFA()
 		{
 			// for each project
 			auto project = state[j];
-			if (project.index < grammas[project.tIndex][project.candidateIndex].size())
+			if (project.index < grammas[project.ntIndex][project.candidateIndex].size())
 			{
 				// pointer can move right
-				auto sym = grammas[project.tIndex][project.candidateIndex][project.index]; // store symbol
+				auto sym = grammas[project.ntIndex][project.candidateIndex][project.index]; // store symbol
 				++project.index;
 				if (!tDfa.contains({state, sym}))
 				{
@@ -292,12 +292,12 @@ void GrammaTable::getState(State &state)
 		{
 			auto p = state.begin() + i;
 			// for each project
-			if (p->index >= grammas[p->tIndex][p->candidateIndex].size())
+			if (p->index >= grammas[p->ntIndex][p->candidateIndex].size())
 				continue;
-			if (grammas[p->tIndex][p->candidateIndex][p->index].type == Symbol::SymbolType::NT)
+			if (grammas[p->ntIndex][p->candidateIndex][p->index].type == Symbol::SymbolType::NT)
 			{
 				// this is an NT, should add all its candidates
-				int ntIndex = grammas[p->tIndex][p->candidateIndex][p->index].index;
+				int ntIndex = grammas[p->ntIndex][p->candidateIndex][p->index].index;
 				for (int j = 0; j < grammas[ntIndex].size(); ++j)
 				{
 					Project t = {ntIndex, j, 0};
@@ -372,9 +372,9 @@ int GrammaTable::getReduceIndex(const State &s, int &ntIndex, int &candidateInde
 	ntIndex = candidateIndex = -1;
 	for (auto p : s)
 	{
-		if (p.index == grammas[p.tIndex][p.candidateIndex].size())
+		if (p.index == grammas[p.ntIndex][p.candidateIndex].size())
 		{
-			ntIndex = p.tIndex;
+			ntIndex = p.ntIndex;
 			candidateIndex = p.candidateIndex;
 			break;
 		}
@@ -668,21 +668,21 @@ void GrammaTable::outputSingleCandidate(int ntIndex, int candidateIndex) const
 
 void GrammaTable::outputProject(const Project &p) const
 {
-	cout << ntTable.getStr(p.tIndex) << " -> ";
-	for (int i = 0; i < grammas[p.tIndex][p.candidateIndex].size(); ++i)
+	cout << ntTable.getStr(p.ntIndex) << " -> ";
+	for (int i = 0; i < grammas[p.ntIndex][p.candidateIndex].size(); ++i)
 	{
 		if (i == p.index)
 			cout << ".";
-		if (grammas[p.tIndex][p.candidateIndex][i].type == Symbol::SymbolType::NT)
+		if (grammas[p.ntIndex][p.candidateIndex][i].type == Symbol::SymbolType::NT)
 		{
-			cout << ntTable.getStr(grammas[p.tIndex][p.candidateIndex][i].index);
+			cout << ntTable.getStr(grammas[p.ntIndex][p.candidateIndex][i].index);
 		}
 		else
 		{
-			cout << tTable.getStr(grammas[p.tIndex][p.candidateIndex][i].index);
+			cout << tTable.getStr(grammas[p.ntIndex][p.candidateIndex][i].index);
 		}
 	}
-	if (p.index == grammas[p.tIndex][p.candidateIndex].size())
+	if (p.index == grammas[p.ntIndex][p.candidateIndex].size())
 		cout << ".";
 }
 
@@ -856,6 +856,8 @@ bool GrammaTable::parse(const QString &str, bool calculateResult) const
 	while (index < candidate.size())
 	{
 		SLR_Key key = {states[stateStack.top()], candidate[index]};
+		if (!slrTable.contains(key))
+			break;
 		auto action = slrTable[key];
 		outputAction(action);
 		cout << endl;

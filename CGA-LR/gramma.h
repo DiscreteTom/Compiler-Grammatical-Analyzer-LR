@@ -12,14 +12,14 @@ using Follow = QSet<Symbol>;
 
 struct Project
 {
-	int tIndex;
+	int ntIndex;
 	int candidateIndex;
 	int index; // position of Point in a project
-	bool operator==(const Project &ano) const { return tIndex == ano.tIndex && candidateIndex == ano.candidateIndex && index == ano.index; }
+	bool operator==(const Project &ano) const { return ntIndex == ano.ntIndex && candidateIndex == ano.candidateIndex && index == ano.index; }
 	bool operator<(const Project &ano) const
 	{
-		if (tIndex != ano.tIndex)
-			return tIndex < ano.tIndex;
+		if (ntIndex != ano.ntIndex)
+			return ntIndex < ano.ntIndex;
 		else if (candidateIndex != ano.candidateIndex)
 			return candidateIndex < ano.candidateIndex;
 		else
@@ -31,7 +31,7 @@ struct Project
 // generate a hash value for Project
 inline uint qHash(const Project &key, uint seed)
 {
-	return qHash(1000 * key.tIndex + 100 * key.candidateIndex + key.index, seed);
+	return qHash(1000 * key.ntIndex + 100 * key.candidateIndex + key.index, seed);
 }
 
 using State = QVector<Project>;
