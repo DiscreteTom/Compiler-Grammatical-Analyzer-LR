@@ -109,6 +109,7 @@ private:
 	int getIndex(int ntIndex, int candidateIndex) const;
 	void getSLR_Table();
 	int getReduceIndex(const State &s, int & ntIndex, int & candidateIndex)const;
+	void getCandidateIndex(int index, int & ntIndex, int & candidateIndex)const;
 	int candidateCount() const;
 	Candidate parseInputToCandidate(const QString &str) const; // return empty candidate if error
 	void outputSingleCandidate(int ntIndex, int candidateIndex) const;

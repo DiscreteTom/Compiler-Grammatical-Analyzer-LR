@@ -382,6 +382,21 @@ int GrammaTable::getReduceIndex(const State &s, int &ntIndex, int &candidateInde
 	return result;
 }
 
+void GrammaTable::getCandidateIndex(int index, int &ntIndex, int &candidateIndex) const
+{
+	ntIndex = candidateIndex = -1;
+	for (int i = 0; i < grammas.size(); ++i){
+		if (index > grammas[i].size()){
+			index -= grammas[i].size();
+			continue;
+		} else {
+			ntIndex = i;
+			candidateIndex = index;
+			return;
+		}
+	}
+}
+
 int GrammaTable::candidateCount() const
 {
 	int result = 0;
@@ -792,5 +807,50 @@ void GrammaTable::output() const
 
 bool GrammaTable::parse(const QString &str) const
 {
+	auto candidate = parseInputToCandidate(str);
+	if (candidate.size() == 0){
+		cout << "Error input.\n";
+		return false;
+	}
+	QStack<int> stateStack;
+	QStack<Symbol> symbolStack;
+	stateStack.push(0);
+	symbolStack.push(END);
+	int index = 0; // index of candidate
+	while (index < candidate.size()){
+		SLR_Key key = {states[stateStack.top()], candidate[index]};
+		auto action = slrTable[key];
+		outputAction(action);
+		switch(action.type){
+		case Action::ActionType::Accept:
+			cout << "Accepted.\n";
+			return true;
+			break;
+		case Action::ActionType::Reduce:
+		{
+			int ntIndex;
+			int candidateIndex;
+			getCandidateIndex(action.index, ntIndex, candidateIndex);
+			for (int i = 0; i < grammas[ntIndex][candidateIndex].size(); ++i){
+				stateStack.pop();
+				symbolStack.pop();
+			}
+			SLR_Key gotoKey = {states[stateStack.top()], {Symbol::SymbolType::NT, ntIndex}};
+			auto gotoAction = slrTable[gotoKey];
+			stateStack.push(gotoAction.index);
+			symbolStack.push(ntTable[ntIndex]);
+			--index; // do not increase index
+			break;
+		}
+		case Action::ActionType::Shift:
+			stateStack.push(action.index);
+			symbolStack.push(candidate[index]);
+			break;
+		default:
+			break;
+		}
+		++index;
+	}
+	cout << "This line not belongs to this gramma.\n";
 	return false;
 }
