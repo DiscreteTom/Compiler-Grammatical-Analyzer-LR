@@ -343,7 +343,11 @@ void GrammaTable::getSLR_Table()
 					}
 				}
 				else // accept
-					slrTable.insert(key, {Action::ActionType::Accept, 0});
+				{
+					for (auto s : follows[ntIndex]){
+						slrTable.insert({key.state, s}, {Action::ActionType::Accept, 0});
+					}
+				}
 			}
 			else
 			{
