@@ -847,7 +847,7 @@ bool GrammaTable::parse(const QString &str, bool calculateResult) const
 	candidate.push_back(END);
 	QStack<int> stateStack;
 	QStack<Symbol> symbolStack;
-	QStack<int> valueStack;
+	QStack<double> valueStack;
 	stateStack.push(0);
 	symbolStack.push(END);
 	int index = 0; // index of candidate
@@ -870,7 +870,7 @@ bool GrammaTable::parse(const QString &str, bool calculateResult) const
 			// calculate value
 			if (calculateResult)
 			{
-				int t = 0;
+				double t = 0;
 				switch (action.index)
 				{
 				case 1: // E -> E1 + T { E.v = E1.v + T.v }
