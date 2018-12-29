@@ -3,6 +3,7 @@
 #include "myutility.h"
 #include <QString>
 #include <string>
+#include <conio.h>
 
 using namespace std;
 
@@ -20,18 +21,28 @@ int main(/*int argc, char *argv[]*/)
 	cout << "Output:\n";
 	gt.output();
 
-	bool flag = true;
-	while (flag)
+	while (1)
 	{
-		cout << "\nInput a line to parse, input blank line to stop.\n";
-		getline(cin, t);
-		if (t.length())
+		cout << "\nPress 1: Just parse input.\nPress 2: Calculate result.\nOtherwise: Exit\n";
+		int mode = getch() - '0';
+		if (mode != 1 && mode != 2) // error input
+			mode = 3;
+		if (mode == 3)
+			return 0;
+
+		bool flag = true;
+		while (flag)
 		{
-			gt.parse(t, true);
-		}
-		else
-		{
-			flag = false;
+			cout << "\nInput a line to parse, input blank line to stop.\n";
+			getline(cin, t);
+			if (t.length())
+			{
+				gt.parse(t, mode == 2);
+			}
+			else
+			{
+				flag = false;
+			}
 		}
 	}
 	system("pause");
