@@ -845,11 +845,13 @@ bool GrammaTable::parse(const QString &str, bool calculateResult) const
 		return false;
 	}
 	candidate.push_back(END);
+
 	QStack<int> stateStack;
 	QStack<Symbol> symbolStack;
 	QStack<double> valueStack;
 	stateStack.push(0);
 	symbolStack.push(END);
+
 	int index = 0; // index of candidate
 	while (index < candidate.size())
 	{
